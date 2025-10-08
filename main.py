@@ -56,27 +56,31 @@ async def generate_image_endpoint(
                 style = prompt.partition("style of")[2].strip().strip(".")
             
             generation_prompt = (
-                f"Keep the exact same person, pose, and photo composition. "
+                f"Create a highly realistic, photographic image. Keep the exact same person, pose, and photo composition. "
                 f"Only change the clothing/outfit to '{style}' style. "
-                f"Maintain facial features, body position, and background exactly as they are."
+                f"Maintain facial features, body position, and background exactly as they are. "
+                f"Use natural lighting, realistic skin texture, and professional photography quality. "
+                f"Ensure the clothing looks authentic and properly fitted to the person's body."
             )
             print(f"Using item-only mode for style: {style}")
         else:
             # Full transformation mode
             style = prompt.partition("style of")[2].strip().strip(".")
             generation_prompt = (
-                f"Create a new photo of this person in a '{style}' theme. "
-                f"Transform the entire scene with new background, pose, and outfit "
-                f"that reflects '{style}' naturally. Create an artistic interpretation."
+                f"Create a highly realistic, professional photograph of this person in a '{style}' theme. "
+                f"Transform the entire scene with an appropriate background, natural pose, and authentic outfit "
+                f"that reflects '{style}' style. Use photographic quality with natural lighting, "
+                f"realistic skin texture, proper shadows, and lifelike details. "
+                f"Ensure the image looks like it was taken with a professional camera, not AI-generated."
             )
             print(f"Using full transformation mode for style: {style}")
 
         # Generate 3 variations
         generated_images = []
         variations = [
-            f"{generation_prompt} Style variation 1.",
-            f"{generation_prompt} Style variation 2 with different lighting.",
-            f"{generation_prompt} Style variation 3 with unique artistic interpretation."
+            f"{generation_prompt} High-resolution, photorealistic quality with natural daylight.",
+            f"{generation_prompt} Professional studio lighting with soft shadows and realistic details.",
+            f"{generation_prompt} Natural outdoor lighting with authentic textures and lifelike appearance."
         ]
         
         for i, variant_prompt in enumerate(variations):
@@ -124,8 +128,7 @@ async def generate_image_endpoint(
             except Exception as e:
                 print(f"Error generating variation {i+1}: {str(e)}")
                 continue
-        
-        # Check if we generated at least one image
+
         if not generated_images:
             raise HTTPException(
                 status_code=500, 
