@@ -129,13 +129,13 @@ celerybeat.pid
 .venv
 .yo
 src/middleware
-src/services/src
+src/infrastructure/services/src
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
-src/services/audiofiles
+src/infrastructure/services/audiofiles
 
 # Spyder project settings
 .spyderproject
