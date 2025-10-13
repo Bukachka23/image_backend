@@ -2,6 +2,9 @@
 name = "gsigner-service"
 requires-python = "==3.11.4"
 
+[tool.setuptools]
+packages = ["src"]
+
 [tool.ruff]
 line-length = 120
 exclude = [

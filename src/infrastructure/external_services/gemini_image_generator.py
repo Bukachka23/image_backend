@@ -16,44 +16,46 @@ class GeminiImageGenerator(ImageGenerator):
     async def generate(self, request: GenerationRequest) -> list[str]:
         """Generate images using Gemini API"""
         generated_images = []
-
         variations = self._create_prompt_variations(request.prompt, request.variations)
 
         for i, variant_prompt in enumerate(variations):
             try:
                 print(f"Generating variation {i + 1}/{request.variations}...")
 
-                response = self._client.models.generate_content(
-                    model=self._model,
-                    contents=[variant_prompt, request.reference_image],
-                    config=types.GenerateContentConfig(
-                        response_modalities=["IMAGE"],
-                        image_config=types.ImageConfig(aspect_ratio="1:1")
-                    ),
-                )
+                max_retries = 2
+                for attempt in range(max_retries):
+                    try:
+                        response = self._client.models.generate_content(
+                            model=self._model,
+                            contents=[variant_prompt, request.reference_image],
+                            config=types.GenerateContentConfig(
+                                response_modalities=["IMAGE"],
+                                image_config=types.ImageConfig(aspect_ratio="1:1")
+                            ),
+                        )
 
-                if not response or not response.candidates:
-                    print(f"No candidates in response for variation {i + 1}")
-                    continue
+                        if response and response.candidates:
+                            candidate = response.candidates[0]
+                            if candidate.content and candidate.content.parts:
+                                for part in candidate.content.parts:
+                                    if getattr(part, "inline_data", None):
+                                        mime = getattr(part.inline_data, "mime_type", "image/png")
+                                        encoded = base64.b64encode(part.inline_data.data).decode("utf-8")
+                                        generated_images.append(f"data:{mime};base64,{encoded}")
+                                        break
+                                break
 
-                candidate = response.candidates[0]
-                if not candidate.content or not candidate.content.parts:
-                    finish_reason = getattr(candidate, "finish_reason", "UNKNOWN")
-                    safety_ratings = getattr(candidate, "safety_ratings", [])
-                    print(f"Variation {i + 1} failed. Finish reason: {finish_reason}, Safety: {safety_ratings}")
-                    continue
-
-                # Extract image data
-                for part in candidate.content.parts:
-                    if getattr(part, "inline_data", None):
-                        mime = getattr(part.inline_data, "mime_type", "image/png")
-                        encoded = base64.b64encode(part.inline_data.data).decode("utf-8")
-                        generated_images.append(f"data:{mime};base64,{encoded}")
-                        break
+                    except Exception as retry_error:
+                        print(f"Attempt {attempt + 1} failed: {retry_error}")
+                        if attempt == max_retries - 1:
+                            raise
 
             except Exception as e:
                 print(f"Error generating variation {i + 1}: {e!s}")
                 continue
+
+        if not generated_images:
+            raise Exception("Failed to generate any images after all attempts")
 
         return generated_images
 
