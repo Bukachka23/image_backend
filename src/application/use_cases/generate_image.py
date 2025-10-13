@@ -46,7 +46,9 @@ class GenerateImageUseCase:
     async def execute(self, request: GenerateImageRequest) -> Result[GenerateImageResponse]:
         user = await self._user_repo.find_by_email(request.email)
         if not user:
-            return Failure(UserNotFoundError(f"User with email {request.email} not found"))
+            from src.domain.entities.user import User
+            user = User.create(request.email)
+            user = await self._user_repo.save(user)
 
         if not user.has_sufficient_credits(self.CREDITS_PER_GENERATION):
             return Failure(InsufficientCreditsError(
