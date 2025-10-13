@@ -22,5 +22,5 @@ ENV PYTHONPATH=/app
 
 EXPOSE 8000
 
-# Simple startup command
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# CRITICAL: Bind to 0.0.0.0 to accept connections from Railway's internal network
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "600"]

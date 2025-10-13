@@ -68,7 +68,9 @@ if __name__ == "__main__":
     settings = get_settings()
     uvicorn.run(
         "src.main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.debug,
+        timeout_keep_alive=600,
+        timeout_graceful_shutdown=30
     )
