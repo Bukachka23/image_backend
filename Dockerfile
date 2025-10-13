@@ -1,22 +1,26 @@
-# Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the dependencies file to the working directory
-COPY requirements.txt .
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir --upgrade pip && \
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the backend application's code
+# Copy all source code
 COPY . .
 
-# Expose the port the app runs on
+# Set Python to be unbuffered (see output immediately)
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
 EXPOSE 8000
 
-# --- FIX: Bind to IPv6 (::) as per your research ---
-# Define the command to run the application
-CMD ["uvicorn", "main:app", "--host", "::", "--port", "8000"]
+# Simple startup command
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
